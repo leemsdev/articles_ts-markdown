@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import './App.css';
-import { tokenize, tokensToStr } from './transpiler/tokens';
+import { tokenize } from './transpiler/tokens';
+import { astToString, parse } from './transpiler/ast'
 
 function App() {
 	const [output, setOutput] = useState("")
 
 	function onSourceChange(src: string) {
-		let parsed = tokensToStr(tokenize(src))
+		let tokenized = tokenize(src)
+		let parsed = astToString(parse(tokenized))
+
 		setOutput(parsed)
 	}
 
