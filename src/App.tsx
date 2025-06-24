@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import './App.css';
+import { tokenize, tokensToStr } from './transpiler/tokens';
 
 function App() {
 	const [output, setOutput] = useState("")
 
 	function onSourceChange(src: string) {
-		setOutput(src)
+		let parsed = tokensToStr(tokenize(src))
+		setOutput(parsed)
 	}
 
 	return (
 		<div className="App">
 			<textarea className="src" onChange={e => onSourceChange(e.target.value)} />
 			<div className="output">
-				{output}
+				<pre>{output}</pre>
 			</div>
 		</div>
 	);
