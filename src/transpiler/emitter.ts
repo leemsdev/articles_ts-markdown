@@ -51,8 +51,6 @@ export default function emitHtml(ast: AST) {
 	let htmlStr = ""
 	let nodes = ast.document;
 
-	console.log(nodes)
-
 	for (const n of nodes) {
 		htmlStr += emit(n)
 	}
