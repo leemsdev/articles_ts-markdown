@@ -1,4 +1,4 @@
-import { AST, HeadingNode, ItalicNode, Node, NodeType, TextNode } from "./ast";
+import { AST, HeadingNode, FormattingNode, Node, NodeType, TextNode } from "./ast";
 
 function emitHeading(node: HeadingNode): string {
 
@@ -14,14 +14,14 @@ function emitHeading(node: HeadingNode): string {
 	return htmlStr
 }
 
-function emitItalic(node: ItalicNode): string {
+function emitFormatted(node: FormattingNode): string {
 	let htmlStr = ""
 
 	for (const n of node.content) {
 		htmlStr += emit(n)
 	}
 
-	return `<i>${htmlStr}</i>\n`
+	return `<${node.element}>${htmlStr}</${node.element}>`
 }
 
 function emitText(node: TextNode): string {
@@ -31,7 +31,7 @@ function emitText(node: TextNode): string {
 function emit(node: Node): string {
 	switch (node.type) {
 		case NodeType.HEADING: return emitHeading(node as HeadingNode)
-		case NodeType.ITALIC: return emitItalic(node as ItalicNode)
+		case NodeType.FORMATTING: return emitFormatted(node as FormattingNode)
 		default: return emitText(node as TextNode)
 	}
 }

@@ -2,8 +2,13 @@ export enum TokenType {
 	HEADING = "heading",
 	TEXT = "text",
 	ITALIC = "italic",
-	NEWLINE = "newline"
+	NEWLINE = "newline",
+
+	BOLD = "bold",
 }
+
+const FormattingCharacters = ['*', '_']
+const WhitespaceCharacters = ['\n', ' ']
 
 export type Token = {
 	type: TokenType,
@@ -22,10 +27,9 @@ export function tokensToStr(tokens: Token[]) {
 }
 
 function isRecognisedTok(i: number, src: string): boolean {
-	const tokenChars = ['_']
-	const delimiters = ['\n', ' '].concat(tokenChars)
+	const delimiters = WhitespaceCharacters.concat(FormattingCharacters)
 
-	if (!tokenChars.includes(src[i])) {
+	if (!FormattingCharacters.includes(src[i])) {
 		return false;
 	}
 
@@ -65,6 +69,10 @@ function tokenFromChar(scanner: Scanner) {
 		case '_': {
 			scanner.cursor += 1;
 			return { type: TokenType.ITALIC, literal: c }
+		}
+		case '*': {
+			scanner.cursor += 1;
+			return { type: TokenType.BOLD, literal: c }
 		}
 		case '\n': {
 			scanner.cursor += 1;
