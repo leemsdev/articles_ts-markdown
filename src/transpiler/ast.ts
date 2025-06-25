@@ -3,7 +3,7 @@ import { Token, TokenType } from "./tokens"
 export enum NodeType {
 	HEADING,
 	TEXT,
-	ITALIC,
+	FORMATTING,
 }
 
 type BaseNode = {
@@ -15,15 +15,17 @@ export type HeadingNode = BaseNode & {
 	content: Node[],
 }
 
-export type ItalicNode = BaseNode & {
-	content: Node[]
+// We replace `ItalicNode` with `FormattingNode`
+export type FormattingNode = BaseNode & {
+	content: Node[],
+	element: string
 }
 
 export type TextNode = BaseNode & {
 	value: string,
 }
 
-export type Node = (HeadingNode | TextNode | ItalicNode)
+export type Node = (HeadingNode | TextNode | FormattingNode)
 
 export type AST = {
 	document: Node[],
@@ -76,10 +78,12 @@ function parseHeading(parser: Parser): HeadingNode {
 	return node
 }
 
-function parseItalic(parser: Parser): ItalicNode {
-	let node: ItalicNode = {
+
+function parseFormattingToken(parser: Parser, type: TokenType, element: string) {
+	let node: FormattingNode = {
 		content: [],
-		type: NodeType.ITALIC
+		type: NodeType.FORMATTING,
+		element,
 	}
 
 	while (true) {
@@ -87,9 +91,8 @@ function parseItalic(parser: Parser): ItalicNode {
 
 		if (!next) break;
 
-		// If we see the closing italic, consume it and exit
-		if (next.type == TokenType.ITALIC) {
-			advance(parser);
+		if (next.type == type) {
+			advance(parser)
 			break;
 		}
 
@@ -113,8 +116,9 @@ function nodeFromToken(parser: Parser) {
 
 	switch (current?.type) {
 		case TokenType.HEADING: return parseHeading(parser)
-		case TokenType.ITALIC: return parseItalic(parser)
 		case TokenType.TEXT: return parseText(current)
+		case TokenType.BOLD: return parseFormattingToken(parser, TokenType.BOLD, "strong")
+		case TokenType.ITALIC: return parseFormattingToken(parser, TokenType.ITALIC, "i")
 		case TokenType.NEWLINE: return
 		default: return
 	}
@@ -135,6 +139,8 @@ export function parse(tokens: Token[]) {
 
 		ast.document.push(node)
 	}
+
+	console.log(JSON.stringify(ast, null, 2))
 
 	return ast
 }
