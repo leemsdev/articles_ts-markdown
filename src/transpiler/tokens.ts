@@ -6,6 +6,7 @@ export enum TokenType {
 	SPACE = "space",
 	BOLD = "bold",
 	CODE = "code",
+	BLOCKQUOTE = "blockquote"
 }
 
 const FormattingCharacters = ['*', '_', '`']
@@ -86,6 +87,10 @@ function tokenFromChar(scanner: Scanner) {
 		case '`': {
 			scanner.cursor += 1;
 			return { type: TokenType.CODE, literal: c }
+		}
+		case '>': {
+			scanner.cursor += 1;
+			return { type: TokenType.BLOCKQUOTE, literal: c }
 		}
 		default: {
 			const text = consumeText(cursor, src)
