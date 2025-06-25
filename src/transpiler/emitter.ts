@@ -1,4 +1,5 @@
 import { AST, HeadingNode, FormattingNode, Node, NodeType, TextNode, WhitespaceNode } from "./ast";
+import { Styles } from "./styles";
 
 function emitHeading(node: HeadingNode): string {
 
@@ -21,7 +22,7 @@ function emitFormatted(node: FormattingNode): string {
 		htmlStr += emit(n)
 	}
 
-	return `<${node.element}>${htmlStr}</${node.element}>`
+	return `<${node.element} style="${Styles[node.element]}">${htmlStr}</${node.element}>`
 }
 
 function emitText(node: TextNode): string {
