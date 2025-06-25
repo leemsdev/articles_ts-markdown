@@ -4,6 +4,7 @@ export enum NodeType {
 	HEADING,
 	TEXT,
 	FORMATTING,
+	SPACING,
 }
 
 type BaseNode = {
@@ -25,7 +26,12 @@ export type TextNode = BaseNode & {
 	value: string,
 }
 
-export type Node = (HeadingNode | TextNode | FormattingNode)
+// WhitespaceNode is just a text node but we 
+// create a distinct type so we can handle it a little
+// differently when emitting.
+export type WhitespaceNode = TextNode
+
+export type Node = (HeadingNode | TextNode | FormattingNode | WhitespaceNode)
 
 export type AST = {
 	document: Node[],
@@ -62,17 +68,23 @@ function parseHeading(parser: Parser): HeadingNode {
 
 		if (!next) break;
 
-		if (next.type == TokenType.HEADING) {
-			node.level++
-			advance(parser)
-			continue;
+		switch (next.type) {
+			case TokenType.HEADING: {
+				node.level++;
+				advance(parser);
+				continue;
+			}
+			case TokenType.NEWLINE: {
+				return node;
+			}
+			default: {
+				let contentNode = nodeFromToken(parser)
+
+				if (!contentNode) break;
+
+				node.content.push(contentNode)
+			}
 		}
-
-		let contentNode = nodeFromToken(parser)
-
-		if (!contentNode) break;
-
-		node.content.push(contentNode)
 	}
 
 	return node
@@ -91,8 +103,7 @@ function parseFormattingToken(parser: Parser, type: TokenType, element: string) 
 
 		if (!next) break;
 
-		if (next.type == type) {
-			advance(parser)
+		if (next.type == type || next.type == TokenType.NEWLINE) {
 			break;
 		}
 
@@ -110,6 +121,10 @@ function parseText(current: Token): TextNode {
 	return { type: NodeType.TEXT, value: current.literal }
 }
 
+function parseWhitespace(current: Token): WhitespaceNode {
+	return { type: NodeType.SPACING, value: current.literal }
+}
+
 
 function nodeFromToken(parser: Parser) {
 	let current = advance(parser)
@@ -119,7 +134,8 @@ function nodeFromToken(parser: Parser) {
 		case TokenType.TEXT: return parseText(current)
 		case TokenType.BOLD: return parseFormattingToken(parser, TokenType.BOLD, "strong")
 		case TokenType.ITALIC: return parseFormattingToken(parser, TokenType.ITALIC, "i")
-		case TokenType.NEWLINE: return
+		case TokenType.SPACE: return parseWhitespace(current)
+		case TokenType.NEWLINE: return parseWhitespace(current)
 		default: return
 	}
 }
