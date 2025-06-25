@@ -4,11 +4,11 @@ export enum TokenType {
 	ITALIC = "italic",
 	NEWLINE = "newline",
 	SPACE = "space",
-
 	BOLD = "bold",
+	CODE = "code",
 }
 
-const FormattingCharacters = ['*', '_']
+const FormattingCharacters = ['*', '_', '`']
 const WhitespaceCharacters = ['\n', ' ']
 
 export type Token = {
@@ -82,6 +82,10 @@ function tokenFromChar(scanner: Scanner) {
 		case ' ': {
 			scanner.cursor += 1;
 			return { type: TokenType.SPACE, literal: c }
+		}
+		case '`': {
+			scanner.cursor += 1;
+			return { type: TokenType.CODE, literal: c }
 		}
 		default: {
 			const text = consumeText(cursor, src)

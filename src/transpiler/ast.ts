@@ -104,6 +104,7 @@ function parseFormattingToken(parser: Parser, type: TokenType, element: string) 
 		if (!next) break;
 
 		if (next.type == type || next.type == TokenType.NEWLINE) {
+			advance(parser)
 			break;
 		}
 
@@ -134,6 +135,7 @@ function nodeFromToken(parser: Parser) {
 		case TokenType.TEXT: return parseText(current)
 		case TokenType.BOLD: return parseFormattingToken(parser, TokenType.BOLD, "strong")
 		case TokenType.ITALIC: return parseFormattingToken(parser, TokenType.ITALIC, "i")
+		case TokenType.CODE: return parseFormattingToken(parser, TokenType.CODE, "code")
 		case TokenType.SPACE: return parseWhitespace(current)
 		case TokenType.NEWLINE: return parseWhitespace(current)
 		default: return
