@@ -1,4 +1,4 @@
-import { AST, HeadingNode, FormattingNode, Node, NodeType, TextNode } from "./ast";
+import { AST, HeadingNode, FormattingNode, Node, NodeType, TextNode, WhitespaceNode } from "./ast";
 
 function emitHeading(node: HeadingNode): string {
 
@@ -28,10 +28,20 @@ function emitText(node: TextNode): string {
 	return node.value
 }
 
+function emitWhitespace(node: WhitespaceNode): string {
+	switch (node.value) {
+		case "\n": return "<br />"
+		case " ": return "&nbsp;"
+	}
+
+	return ""
+}
+
 function emit(node: Node): string {
 	switch (node.type) {
 		case NodeType.HEADING: return emitHeading(node as HeadingNode)
 		case NodeType.FORMATTING: return emitFormatted(node as FormattingNode)
+		case NodeType.SPACING: return emitWhitespace(node as WhitespaceNode)
 		default: return emitText(node as TextNode)
 	}
 }

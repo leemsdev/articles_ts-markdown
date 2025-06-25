@@ -3,6 +3,7 @@ export enum TokenType {
 	TEXT = "text",
 	ITALIC = "italic",
 	NEWLINE = "newline",
+	SPACE = "space",
 
 	BOLD = "bold",
 }
@@ -80,7 +81,7 @@ function tokenFromChar(scanner: Scanner) {
 		}
 		case ' ': {
 			scanner.cursor += 1;
-			return null
+			return { type: TokenType.SPACE, literal: c }
 		}
 		default: {
 			const text = consumeText(cursor, src)
