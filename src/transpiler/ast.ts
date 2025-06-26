@@ -206,8 +206,6 @@ export function parse(tokens: Token[]) {
 		cursor: 0,
 	}
 
-	console.log(tokens)
-
 	let ast: AST = { document: [] }
 
 	while (parser.cursor < tokens.length) {

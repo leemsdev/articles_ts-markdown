@@ -9,7 +9,6 @@ function App() {
 
 	function onSourceChange(src: string) {
 		let tokenized = tokenize(src)
-		console.log(tokenized)
 		let parsed = parse(tokenized)
 		let html = emitHtml(parsed)
 
