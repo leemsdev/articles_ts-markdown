@@ -54,8 +54,12 @@ function advance(parser: Parser): Token | null {
 	return next
 }
 
-function peek(parser: Parser): Token | null {
-	return parser.tokens[parser.cursor]
+function peek(parser: Parser, amount: number = 0): Token | null {
+	return parser.tokens[parser.cursor + amount]
+}
+
+function matchMultiple(parser: Parser, pattern: TokenType[]) {
+	return pattern.every(type => peek(parser)?.type == type);
 }
 
 function parseHeading(parser: Parser): HeadingNode {
@@ -128,6 +132,57 @@ function parseWhitespace(current: Token): WhitespaceNode {
 	return { type: NodeType.SPACING, value: current.literal }
 }
 
+function parseBlockQuote(parser: Parser) {
+	return parseFormattingToken(parser, TokenType.CODE, "code")
+}
+
+function parseCode(parser: Parser) {
+	// If the next two tokens are not backticks, then this is
+	// a one-line code block.
+	if (!matchMultiple(parser, [TokenType.CODE, TokenType.CODE])) {
+		return parseFormattingToken(parser, TokenType.CODE, "code")
+	}
+
+	// If not, we will consume those two tokens and then
+	// continue parsing until we find the closing pattern,
+	// which is three backticks.
+	advance(parser)
+	advance(parser)
+
+	let node: FormattingNode = {
+		type: NodeType.FORMATTING,
+		element: "code",
+		content: [],
+	}
+
+	while (true) {
+		let next = peek(parser)
+
+		if (!next) break;
+
+		// try to match the pattern again
+		if (next.type === TokenType.CODE && matchMultiple(parser, [TokenType.CODE, TokenType.CODE, TokenType.CODE])) {
+			// consume these tokens and return the finished token.
+			advance(parser)
+			advance(parser)
+			advance(parser)
+			break;
+		}
+
+		// Code blocks are special in that we will simply ignore all formatting tokens inside of one.
+		// So we just process everything as text or a new line.
+		if (next.type === TokenType.NEWLINE) {
+			node.content.push({ type: NodeType.SPACING, value: '\n' })
+		} else {
+			node.content.push({ type: NodeType.TEXT, value: next.literal })
+		}
+
+		advance(parser)
+	}
+
+	return node
+}
+
 
 function nodeFromToken(parser: Parser) {
 	let current = advance(parser)
@@ -137,8 +192,8 @@ function nodeFromToken(parser: Parser) {
 		case TokenType.TEXT: return parseText(current)
 		case TokenType.BOLD: return parseFormattingToken(parser, TokenType.BOLD, "strong")
 		case TokenType.ITALIC: return parseFormattingToken(parser, TokenType.ITALIC, "i")
-		case TokenType.CODE: return parseFormattingToken(parser, TokenType.CODE, "code")
-		case TokenType.BLOCKQUOTE: return parseFormattingToken(parser, TokenType.BLOCKQUOTE, "blockquote")
+		case TokenType.CODE: return parseCode(parser)
+		case TokenType.BLOCKQUOTE: return parseBlockQuote(parser)
 		case TokenType.SPACE: return parseWhitespace(current)
 		case TokenType.NEWLINE: return parseWhitespace(current)
 		default: return
@@ -160,8 +215,6 @@ export function parse(tokens: Token[]) {
 
 		ast.document.push(node)
 	}
-
-	console.log(JSON.stringify(ast, null, 2))
 
 	return ast
 }
